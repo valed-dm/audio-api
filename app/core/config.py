@@ -1,10 +1,14 @@
 import os
 from typing import Annotated
 
+from dotenv import load_dotenv
 from pydantic import AnyHttpUrl
 from pydantic import Field
 from pydantic import TypeAdapter
 from pydantic_settings import BaseSettings
+from pydantic_settings import SettingsConfigDict
+
+load_dotenv()
 
 
 class Settings(BaseSettings):
@@ -38,6 +42,13 @@ class Settings(BaseSettings):
     ]
     JWT_REFRESH_TIMEOUT: Annotated[int, Field(validation_alias="JWT_REFRESH_TIMEOUT")]
 
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+        case_sensitive=True,
+    )
+
     @property
     def database_url(self) -> str:
         user = self.POSTGRES_USER
@@ -46,9 +57,6 @@ class Settings(BaseSettings):
         port = self.POSTGRES_PORT
         db = self.POSTGRES_DB
         return f"postgresql+asyncpg://{user}:{password}@{host}:{port}/{db}"
-
-    class Config:
-        case_sensitive = True
 
 
 settings = Settings()
