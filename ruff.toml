@@ -8,7 +8,6 @@ lint.select = [
     "I", # isort
     "UP", # pyupgrade
     "C4", # flake8-comprehensions
-    "ANN", # flake8-annotations
     "S", # flake8-bandit (security)
     "BLE", # flake8-blind-except
     "PTH", # flake8-use-pathlib
@@ -16,6 +15,8 @@ lint.select = [
 ]
 
 lint.ignore = [
+    "ANN001",
+    "ANN202",
     "ANN101", # Missing type annotation for self
     "E501", # Line too long (handled by format)
 ]
