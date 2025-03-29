@@ -10,8 +10,8 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from app.core.config import settings
-from app.core.logging import log_decorator
-from app.core.logging import logger
+from app.core.custom_logging import log_execution
+from app.core.custom_logging import logger
 
 # Metrics (initialize only once)
 CONNECTION_GAUGE = Gauge(
@@ -96,7 +96,7 @@ AsyncSessionLocal = async_sessionmaker(
 )
 
 
-@log_decorator(level=logging.DEBUG)
+@log_execution(level=logging.DEBUG)
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """Dependency that provides database sessions with automatic cleanup.
 
