@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     STORAGE_PATH: str = "./storage"
     PROJECT_NAME: Annotated[str, Field(validation_alias="PROJECT_NAME")]
     SECRET_KEY: Annotated[str, Field(validation_alias="SECRET_KEY")]
+    LOG_LEVEL: Annotated[str, Field(validation_alias="LOG_LEVEL")]
 
     # JSON list of accepted CORS origins
     CORS_ORIGINS: list[AnyHttpUrl] = TypeAdapter(list[AnyHttpUrl]).validate_json(
