@@ -1,3 +1,5 @@
+"""Custom logging module to be refactored"""
+
 import asyncio
 import inspect
 import logging
