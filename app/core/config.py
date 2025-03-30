@@ -14,8 +14,12 @@ load_dotenv()
 class Settings(BaseSettings):
     STORAGE_PATH: str = "./storage"
     PROJECT_NAME: Annotated[str, Field(validation_alias="PROJECT_NAME")]
+    ALGORITHM: Annotated[str, Field(validation_alias="ALGORITHM")]
     SECRET_KEY: Annotated[str, Field(validation_alias="SECRET_KEY")]
     LOG_LEVEL: Annotated[str, Field(validation_alias="LOG_LEVEL")]
+    DEBUG: bool = True
+    SESSION_LIFETIME: int = 3600
+    YANDEX_TOKEN_URL: Annotated[str, Field(validation_alias="YANDEX_TOKEN_URL")]
 
     # JSON list of accepted CORS origins
     CORS_ORIGINS: list[AnyHttpUrl] = TypeAdapter(list[AnyHttpUrl]).validate_json(
@@ -41,6 +45,15 @@ class Settings(BaseSettings):
         int, Field(default=300, validation_alias="JWT_TIMEOUT", gt=300)
     ]
     JWT_REFRESH_TIMEOUT: Annotated[int, Field(validation_alias="JWT_REFRESH_TIMEOUT")]
+    TOKEN_TYPE: Annotated[str, Field(validation_alias="TOKEN_TYPE")]
+    ACCESS_TOKEN_EXPIRE_MINUTES: Annotated[
+        int, Field(validation_alias="ACCESS_TOKEN_EXPIRE_MINUTES")
+    ]
+
+    # Yandex auth data
+    YANDEX_CLIENT_ID: Annotated[str, Field(validation_alias="YANDEX_CLIENT_ID")]
+    YANDEX_CLIENT_SECRET: Annotated[str, Field(validation_alias="YANDEX_CLIENT_SECRET")]
+    YANDEX_REDIRECT_URI: Annotated[str, Field(validation_alias="YANDEX_REDIRECT_URI")]
 
     model_config = SettingsConfigDict(
         env_file=".env",
