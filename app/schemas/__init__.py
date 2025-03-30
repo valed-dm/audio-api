@@ -1,13 +1,14 @@
+from user.user import User
+from user.user import UserCreate
+from user.user import UserSimple
+from user.user import UserUpdate
+
 from .audiofile import AudioFile
 from .audiofile import AudioFileCreate
 from .audiofile import AudioFileSimple
 from .audiofile import AudioFileUpdate
 from .audiofile import ContentType
 from .audiofile import Genre
-from .user import User
-from .user import UserCreate
-from .user import UserSimple
-from .user import UserUpdate
 
 # --- Call model_rebuild() AFTER all imports ---
 # Pydantic V2 searches the module scope where rebuild is called and globals.

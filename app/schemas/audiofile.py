@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from pydantic import Field
 
 if typing.TYPE_CHECKING:
-    from app.schemas.user import UserSimple
+    from user.user import UserSimple
 
 
 class ContentType(str, Enum):
