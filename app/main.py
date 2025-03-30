@@ -12,7 +12,10 @@ from app.api.v1.auth.yandex_auth import yandex_auth_router
 from app.auth.yandex_auth import oauth
 from app.core.config import settings
 from app.core.custom_logging import async_logger
+from app.core.custom_logging import configure_logging
 from app.core.custom_logging import logger
+
+configure_logging()
 
 
 def configure_cors(a: FastAPI) -> None:
@@ -36,21 +39,46 @@ def setup_routers(a: FastAPI) -> None:
 
 
 @asynccontextmanager
-async def lifespan(a: FastAPI):
-    if not hasattr(oauth, "yandex"):
-        await async_logger.error("Yandex OAuth client not configured properly!")
-    else:
-        await async_logger.info("Yandex OAuth client initialized successfully")
+async def lifespan(app: FastAPI):
+    """
+    Asynchronous context manager for FastAPI lifespan events (startup, shutdown).
+    """
+    try:
+        oauth_configured = hasattr(oauth, "yandex")
+        log_message = (
+            "Yandex OAuth client initialized successfully"
+            if oauth_configured
+            else "Yandex OAuth client not configured properly!"
+        )
 
-    await async_logger.info("Startup application...")
+        if not oauth_configured:
+            if async_logger:
+                await async_logger.error(log_message)
+            else:
+                logger.error(log_message)
+        else:
+            if async_logger:
+                await async_logger.info(log_message)
+            else:
+                logger.info(log_message)
 
-    yield
+        if async_logger:
+            await async_logger.info("Startup application...")
+        else:
+            logger.info("Startup application...")
 
-    await async_logger.info("Shutdown application...")
+        yield  # Application is starting up
+
+    finally:
+        if async_logger:
+            await async_logger.info("Shutdown application...")
+            async_logger.shutdown()  # Properly shut down the async logger
+        else:
+            logger.info("Shutdown application...")
 
 
 def create_app() -> FastAPI:
-    logger.info("Starting Audio API")
+    logger.info("Starting Audio API")  # Use logger here (synchronous)
     application = FastAPI(
         title=settings.PROJECT_NAME,
         summary="Service for audio file uploads",
@@ -75,3 +103,17 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
+
+
+# Example route (demonstrates logging)
+@app.get("/")
+async def read_root():
+    """
+    Example API endpoint.
+    """
+    logger.info("Accessed the root endpoint (synchronous)")
+    if async_logger:
+        await async_logger.debug(
+            "Accessed the root endpoint (asynchronous)"
+        )  # Example of async logging
+    return {"Hello": "World"}
