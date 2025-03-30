@@ -10,7 +10,7 @@ warn_unused_configs = false
 disallow_untyped_defs = false
 
 [tool.poetry]
-name = "Audio-API"
+name = "DMVALED AUDIO API"
 version = "0.1.0"
 description = "FastAPI service for audio file uploads"
 authors = ["Dmitrii Valedinskii <dmvaled@gmail.com>"]
