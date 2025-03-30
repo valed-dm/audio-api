@@ -1,3 +1,4 @@
+import logging
 import secrets
 import string
 from typing import Annotated
@@ -21,6 +22,7 @@ from app.api.v1.auth.auth_token import login_for_access_token
 from app.auth.token_schema import Token
 from app.auth.yandex_auth import oauth
 from app.core.config import settings
+from app.core.custom_logging import log_execution
 from app.core.custom_logging import logger
 from app.db.session import get_db
 from app.models.users import User
@@ -33,6 +35,7 @@ from user.user import YandexUserInfo
 yandex_auth_router = APIRouter()
 
 
+@log_execution(level=logging.DEBUG, show_args=True)
 def generate_strong_temp_password() -> str:
     """Generates a strong temporary password with mixed case, numbers and symbols"""
     alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
@@ -48,7 +51,7 @@ def generate_strong_temp_password() -> str:
 
 
 @yandex_auth_router.get("/auth/yandex")
-# @log_execution(level=logging.DEBUG, show_args=True) # Add your decorator if needed
+@log_execution(level=logging.DEBUG, show_args=True)
 async def login_via_yandex(request: Request):
     """Initiates the Yandex OAuth flow."""
     redirect_uri = settings.YANDEX_REDIRECT_URI
@@ -66,6 +69,7 @@ async def login_via_yandex(request: Request):
 
 
 @yandex_auth_router.get("/auth/yandex/callback", response_model=AuthResponse)
+@log_execution(level=logging.DEBUG, show_args=True)
 async def yandex_callback(
     request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],

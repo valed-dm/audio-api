@@ -19,7 +19,6 @@ class Settings(BaseSettings):
     LOG_LEVEL: Annotated[str, Field(validation_alias="LOG_LEVEL")]
     DEBUG: bool = True
     SESSION_LIFETIME: int = 3600
-    YANDEX_TOKEN_URL: Annotated[str, Field(validation_alias="YANDEX_TOKEN_URL")]
 
     # JSON list of accepted CORS origins
     CORS_ORIGINS: list[AnyHttpUrl] = TypeAdapter(list[AnyHttpUrl]).validate_json(
@@ -54,6 +53,10 @@ class Settings(BaseSettings):
     YANDEX_CLIENT_ID: Annotated[str, Field(validation_alias="YANDEX_CLIENT_ID")]
     YANDEX_CLIENT_SECRET: Annotated[str, Field(validation_alias="YANDEX_CLIENT_SECRET")]
     YANDEX_REDIRECT_URI: Annotated[str, Field(validation_alias="YANDEX_REDIRECT_URI")]
+    YANDEX_TOKEN_URL: Annotated[str, Field(validation_alias="YANDEX_TOKEN_URL")]
+    YANDEX_AUTHORIZE_URL: Annotated[str, Field(validation_alias="YANDEX_AUTHORIZE_URL")]
+    YANDEX_BASE_URL: Annotated[str, Field(validation_alias="YANDEX_BASE_URL")]
+    YANDEX_USER_INFO_URL: Annotated[str, Field(validation_alias="YANDEX_USER_INFO_URL")]
 
     model_config = SettingsConfigDict(
         env_file=".env",

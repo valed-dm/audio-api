@@ -17,9 +17,9 @@ def setup_oauth():
         client_id=settings.YANDEX_CLIENT_ID,
         client_secret=settings.YANDEX_CLIENT_SECRET,
         access_token_url=settings.YANDEX_TOKEN_URL,
-        authorize_url="https://oauth.yandex.com/authorize",
-        api_base_url="https://login.yandex.com",
-        userinfo_endpoint="https://login.yandex.ru/info",
+        authorize_url=settings.YANDEX_AUTHORIZE_URL,
+        api_base_url=settings.YANDEX_BASE_URL,
+        userinfo_endpoint=settings.YANDEX_USER_INFO_URL,
         client_kwargs={
             "scope": "login:email login:info",
             "token_endpoint_auth_method": "client_secret_post",
