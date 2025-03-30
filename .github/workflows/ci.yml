@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  lint-test:
+    name: Lint and Test
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: [ "3.12", "3.13" ]
+
+    services:
+      postgres:
+        image: postgres:16
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: test_db_user
+          POSTGRES_PASSWORD: test_db_password
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd "pg_isready -U test_user"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Python
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry install --no-root
+
+      # Step 4: Set environment variables
+      - name: Set environment variables for tests
+        run: |
+          echo "TEST_USERNAME=test_user" >> $GITHUB_ENV
+          echo "TEST_PASSWORD=test_password" >> $GITHUB_ENV
+          echo "TEST_EMAIL=test_user@example.com" >> $GITHUB_ENV
+          echo "TEST_FULL_NAME=Test User" >> $GITHUB_ENV
+          echo "TEST_SCOPES=me read update" >> $GITHUB_ENV
+          echo "TOKEN_TYPE=bearer" >> $GITHUB_ENV
+          echo "DB_USER=test_db_user" >> $GITHUB_ENV
+          echo "DB_PASSWORD=test_db_password" >> $GITHUB_ENV
+          echo "DB_HOST=localhost" >> $GITHUB_ENV
+          echo "TEST_DB_NAME=test_db" >> $GITHUB_ENV
+
+      # Step 5: Lint with Ruff
+      - name: Lint with Ruff
+        run: poetry run ruff check --output-format=github --extend-ignore TC003 .
+
+      # Step 6: Run tests
+      - name: Run tests
+        env:
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          TEST_USERNAME: ${{ env.TEST_USERNAME }}
+          TEST_PASSWORD: ${{ env.TEST_PASSWORD }}
+          TEST_EMAIL: ${{ env.TEST_EMAIL }}
+          TEST_FULL_NAME: ${{ env.TEST_FULL_NAME }}
+          TEST_SCOPES: ${{ env.TEST_SCOPES }}
+          TOKEN_TYPE: ${{ env.TOKEN_TYPE }}
+          DB_USER: ${{ env.DB_USER }}
+          DB_PASSWORD: ${{ env.DB_PASSWORD }}
+          DB_HOST: ${{ env.DB_HOST }}
+          TEST_DB_NAME: ${{ env.TEST_DB_NAME }}
+        run: poetry run pytest
+
+      # Step 7: Cache dependencies (optional but speeds things up)
+      - name: Cache Poetry dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-${{ matrix.python-version }}
