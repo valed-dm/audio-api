@@ -42,8 +42,27 @@ class User(Base, TimestampMixin):
     )
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     full_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    disabled: Mapped[bool] = mapped_column(Boolean, server_default=sa.text("false"))
-    scopes: Mapped[str] = mapped_column(String(512), default="")
+    disabled: Mapped[bool] = mapped_column(
+        Boolean,
+        server_default=sa.text("false"),
+        comment="Whether user account is disabled",
+    )
+    scopes: Mapped[str] = mapped_column(
+        String(512),
+        server_default="",
+        comment="Space-separated list of access scopes",
+    )
+    is_oauth: Mapped[bool] = mapped_column(
+        Boolean,
+        server_default=sa.text("false"),
+        comment="True if user registered via OAuth provider",
+    )
+    oauth_provider: Mapped[str | None] = mapped_column(
+        String(50), nullable=True, comment="'yandex', 'google', etc."
+    )
+    oauth_id: Mapped[str | None] = mapped_column(
+        String(256), nullable=True, comment="User ID from OAuth provider"
+    )
 
     owned_files: Mapped[list["AudioFile"]] = relationship(  # noqa
         back_populates="owner", cascade="all, delete-orphan"

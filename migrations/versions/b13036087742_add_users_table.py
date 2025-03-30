@@ -1,8 +1,8 @@
-"""Add users table
+"""add_users_table
 
-Revision ID: 748f46223309
+Revision ID: b13036087742
 Revises:
-Create Date: 2025-03-29 15:18:35.365582
+Create Date: 2025-03-30 09:03:37.806692
 
 """
 
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "748f46223309"
+revision: str = "b13036087742"
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -29,9 +29,38 @@ def upgrade() -> None:
         sa.Column("hashed_password", sa.String(length=255), nullable=False),
         sa.Column("full_name", sa.String(length=100), nullable=True),
         sa.Column(
-            "disabled", sa.Boolean(), server_default=sa.text("false"), nullable=False
+            "disabled",
+            sa.Boolean(),
+            server_default=sa.text("false"),
+            nullable=False,
+            comment="Whether user account is disabled",
         ),
-        sa.Column("scopes", sa.String(length=512), nullable=False),
+        sa.Column(
+            "scopes",
+            sa.String(length=512),
+            server_default="",
+            nullable=False,
+            comment="Space-separated list of access scopes",
+        ),
+        sa.Column(
+            "is_oauth",
+            sa.Boolean(),
+            server_default=sa.text("false"),
+            nullable=False,
+            comment="True if user registered via OAuth provider",
+        ),
+        sa.Column(
+            "oauth_provider",
+            sa.String(length=50),
+            nullable=True,
+            comment="'yandex', 'google', etc.",
+        ),
+        sa.Column(
+            "oauth_id",
+            sa.String(length=256),
+            nullable=True,
+            comment="User ID from OAuth provider",
+        ),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -42,7 +71,7 @@ def upgrade() -> None:
             "updated_at",
             sa.DateTime(timezone=True),
             server_default=sa.func.now(),
-            onupdate=sa.func.now(),
+            server_onupdate=sa.func.now(),
             nullable=False,
         ),
         sa.PrimaryKeyConstraint("id"),

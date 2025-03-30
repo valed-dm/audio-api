@@ -1,8 +1,8 @@
-"""Add user_audio_association table
+"""add_user_audio_association_table
 
-Revision ID: 9b138dc88f7f
-Revises: 3e0211f260db
-Create Date: 2025-03-29 15:34:05.420520
+Revision ID: 08d471d75731
+Revises: 8082114d2043
+Create Date: 2025-03-30 09:13:17.117800
 
 """
 
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "9b138dc88f7f"
-down_revision: str | None = "3e0211f260db"
+revision: str = "08d471d75731"
+down_revision: str | None = "8082114d2043"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

@@ -1,8 +1,8 @@
-"""Add audio_files table
+"""add_audio_files_table
 
-Revision ID: 3e0211f260db
-Revises: 748f46223309
-Create Date: 2025-03-29 15:22:02.960411
+Revision ID: 8082114d2043
+Revises: b13036087742
+Create Date: 2025-03-30 09:09:57.087829
 
 """
 
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "3e0211f260db"
-down_revision: str | None = "748f46223309"
+revision: str = "8082114d2043"
+down_revision: str | None = "b13036087742"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
@@ -60,7 +60,7 @@ def upgrade() -> None:
             "updated_at",
             sa.DateTime(timezone=True),
             server_default=sa.func.now(),
-            onupdate=sa.func.now(),
+            server_onupdate=sa.func.now(),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
