@@ -82,6 +82,6 @@ class YandexUserInfo(BaseModel):
     first_name: str
     last_name: str
     sex: str
-    default_email: str
-    emails: list
+    default_email: EmailStr
+    emails: list[EmailStr]
     psuid: str
