@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import sqlalchemy as sa
 from sqlalchemy import BigInteger
 from sqlalchemy import Boolean
@@ -13,6 +15,9 @@ from sqlalchemy.orm import relationship
 from app.models.base import Base
 from app.models.timestamp import TimestampMixin
 from app.models.user_audio import user_audio_association
+
+if TYPE_CHECKING:
+    from .audiofiles import AudioFile
 
 
 class User(Base, TimestampMixin):

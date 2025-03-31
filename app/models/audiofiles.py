@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 from sqlalchemy import BigInteger
 from sqlalchemy import Enum
 from sqlalchemy import ForeignKey
@@ -12,6 +14,9 @@ from app.models.timestamp import TimestampMixin
 from app.models.user_audio import user_audio_association
 from app.schemas.audiofile import ContentType
 from app.schemas.audiofile import Genre
+
+if TYPE_CHECKING:
+    from .users import User
 
 
 class AudioFile(Base, TimestampMixin):
@@ -46,8 +51,8 @@ class AudioFile(Base, TimestampMixin):
     size: Mapped[int] = mapped_column(BigInteger, nullable=False)
     path: Mapped[str] = mapped_column(String(512), nullable=False)
     owner_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
-    owner: Mapped["User"] = relationship(back_populates="owned_files")  # noqa
-    authorized_users: Mapped[list["User"]] = relationship(  # noqa
+    owner: Mapped["User"] = relationship(back_populates="owned_files")
+    authorized_users: Mapped[list["User"]] = relationship(
         secondary=user_audio_association,
         back_populates="accessible_files",
         lazy="selectin",
