@@ -4,13 +4,13 @@ import string
 from typing import Annotated
 
 import aiohttp
+import sqlalchemy
 from authlib.integrations.base_client import MissingTokenError
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import HTTPException
 from fastapi import Request
 from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import EmailStr
 from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
@@ -36,7 +36,7 @@ yandex_auth_router = APIRouter()
 
 
 @log_execution(level=logging.DEBUG, show_args=True)
-def generate_strong_temp_password() -> str:
+async def generate_strong_temp_password() -> str:
     """Generates a strong temporary password with mixed case, numbers and symbols"""
     alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
     while True:
@@ -75,37 +75,39 @@ async def yandex_callback(
     db: Annotated[AsyncSession, Depends(get_db)],
     code: str | None = None,
     error: str | None = None,
-) -> AuthResponse | RedirectResponse:
-    """Handles the callback from Yandex after user authentication."""
+) -> AuthResponse | RedirectResponse | None:
+    """
+    Handles the callback from Yandex after user authentication.
+
+    Returns:
+        AuthResponse: On successful authentication
+        RedirectResponse: For redirects to login/error pages
+    """
     try:
-        # Log the incoming request details for debugging
         logger.debug(f"Yandex callback received. URL: {request.url}")
         logger.debug(f"Session contents on callback entry: {dict(request.session)}")
         incoming_state = request.query_params.get("state")
         logger.debug(f"Received state from URL: {incoming_state}")
         logger.debug(f"Received code from URL: {code}")
         logger.debug(f"Received error from URL: {error}")
-
         # 1. Check for errors from Yandex first
         if error:
             error_description = request.query_params.get(
                 "error_description", "No description provided."
             )
             logger.error(f"Yandex returned an error: {error} - {error_description}")
-            # Redirect to login page with error. Use RedirectResponse for redirects
+            # Redirect to login page with error.
             return RedirectResponse(
                 url="/register?error=yandex_auth_failed",
-                status_code=status.HTTP_302_FOUND,  # Use 302 for redirects
+                status_code=status.HTTP_302_FOUND,
             )
-
         # 2. Check if code is missing
         if not code:
             logger.error("Yandex callback missing 'code' parameter without an 'error'.")
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,  # Use correct HTTP status code
+                status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid callback request from Yandex: missing code.",
             )
-
         # 3. Exchange code for token with retry mechanism
         try:
             token = await oauth.yandex.authorize_access_token(request)
@@ -122,28 +124,20 @@ async def yandex_callback(
         except Exception as e:
             logger.error(f"Error during token exchange: {e!s}")
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,  # Use correct HTTP status code
+                status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Failed to exchange code for access token.",
             ) from e
-
         # 4. Fetch user info with network error handling
         try:
             logger.info("Fetching user info using oauth.yandex.userinfo...")
             yandex_user_raw = await oauth.yandex.userinfo(token=token)
-            yandex_user_raw = dict(yandex_user_raw)
-            logger.info(f"Yandex user info parsed via userinfo: {yandex_user_raw}")
-            logger.info(f"Yandex user info type: {type(yandex_user_raw)}")
-
             if not yandex_user_raw:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Empty user data received from Yandex",
                 )
-
-            # Validate and parse user data
             try:
                 yandex_user = YandexUserInfo(**yandex_user_raw)
-                logger.info(f"Yandex user: {type(yandex_user)}")
                 logger.info(f"Yandex user data: {yandex_user.model_dump()}")
             except ValidationError as e:
                 logger.error(f"Validation error for Yandex user data: {e!s}")
@@ -151,7 +145,6 @@ async def yandex_callback(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Invalid user data received from Yandex",
                 ) from e
-
             # Check existing user by email
             try:
                 db_user_by_email = await db.execute(
@@ -164,34 +157,31 @@ async def yandex_callback(
                     status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                     detail="Database service unavailable",
                 ) from e
-
+            # Existing user primary authorization method check
             if existing_user:
-                logger.info(f"User found: ===> {existing_user}")
+                logger.info(f"User from Yandex is found in db: {existing_user}")
                 if not existing_user.is_oauth:
                     logger.warning(f"Email conflict: {yandex_user.default_email}")
-                    # Redirect to login page with email conflict error
+                    # Redirect to token page with email conflict error
                     return RedirectResponse(
-                        url="/register",
+                        url="/token",
                         status_code=status.HTTP_302_FOUND,
                     )
-
-                # OAuth login - bypass password check
+                # OAuth login in progress, so bypass own password check
                 try:
-                    # Log the OAuth2PasswordRequestForm data before sending it
                     form_data = OAuth2PasswordRequestForm(
                         username=existing_user.username,
                         password=settings.PASSWORD_STUB,
                     )
                     logger.debug(
-                        f"OAuth2PasswordRequestForm data: username={form_data.username}, password={form_data.password}"
-                    )  # Log data
+                        f"OAuth2PasswordRequestForm data:"
+                        f"username={form_data.username},"
+                        f"password={form_data.password}"
+                    )
                     token: Token = await login_for_access_token(
-                        form_data, is_oauth=True
-                    )  # Type hint for token
-
-                    logger.debug(
-                        f"Token received from login_for_access_token: {token}"
-                    )  # Log token
+                        form_data=form_data, db=db, is_oauth=True
+                    )
+                    logger.debug(f"Token received from login_for_access_token: {token}")
 
                 except Exception as e:
                     logger.error(f"Error generating access token: {e!s}")
@@ -207,36 +197,23 @@ async def yandex_callback(
                         username=existing_user.username,
                         email=existing_user.email,
                         full_name=existing_user.full_name,
-                        password=settings.USE_VALID_PASWORD,
+                        password=settings.USE_VALID_PASSWORD,
                     ),
                     is_temporary_password=False,
                 )
-
-            # New user creation
-            temp_password = generate_strong_temp_password()
-
-            # Create full name from first and last names if available
+            # New user creation if user not found in db
+            temp_password = await generate_strong_temp_password()
             full_name = (
                 f"{yandex_user.first_name or ''} {yandex_user.last_name or ''}".strip()
             )
             if not full_name:
                 full_name = yandex_user.display_name or yandex_user.login
-
+            # New user is being created in db
             try:
-                try:
-                    email = EmailStr.validate(yandex_user.default_email)
-                except ValueError as e:
-                    logger.error(
-                        f"Invalid email format from Yandex: {yandex_user.default_email}"
-                    )
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="Invalid email address received from Yandex",
-                    ) from e
                 db_user = await create_user(
                     user=UserCreate(
                         username=yandex_user.login,
-                        email=email,
+                        email=yandex_user.default_email,
                         full_name=full_name,
                         password=temp_password,
                         disabled=False,
@@ -247,25 +224,24 @@ async def yandex_callback(
                     ),
                     db=db,
                 )
-                logger.info(f"New user created: ===> {db_user}, {temp_password}")
-
-                # Generate access token
+                logger.info(f"New user created:{db_user}, {temp_password}")
+                # Generate access token for new user
                 try:
-                    # Log the OAuth2PasswordRequestForm data before sending it.
                     form_data = OAuth2PasswordRequestForm(
                         username=db_user.username,
-                        password=temp_password,  # Using temp password
-                        scope="",  # Add scope
+                        password=temp_password,
                     )
                     logger.debug(
-                        f"OAuth2PasswordRequestForm data: username={form_data.username}, password=**TEMP_PASSWORD**"
-                    )  # Log data
+                        f"OAuth2PasswordRequestForm data:"
+                        f"username={form_data.username},"
+                        f"password=**TEMP_PASSWORD**"
+                    )
                     token: Token = await login_for_access_token(
-                        form_data
-                    )  # Type hint for token
-                    logger.debug(
-                        f"Token received from login_for_access_token: {token}"
-                    )  # Log token
+                        form_data=form_data,
+                        db=db,
+                        is_oauth=True,
+                    )
+                    logger.debug(f"Token received from login_for_access_token: {token}")
 
                 except Exception as e:
                     logger.error(f"Error generating access token for new user: {e!s}")
@@ -318,9 +294,15 @@ async def yandex_callback(
     except HTTPException:
         # Re-raise HTTPExceptions we've already handled
         raise
+    except sqlalchemy.exc.ArgumentError as e:
+        logger.error(f"Model configuration error: {e}")
+        raise HTTPException(status_code=500, detail="Server configuration error") from e
     except Exception as e:
         logger.error(f"Unexpected error in Yandex callback: {e!s}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred during authentication.",
         ) from e
+
+    finally:
+        await db.close()
