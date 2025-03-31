@@ -12,13 +12,16 @@ load_dotenv()
 
 
 class Settings(BaseSettings):
-    STORAGE_PATH: str = "./storage"
+    APP_NAME: Annotated[str, Field(validation_alias="APP_NAME")]
     PROJECT_NAME: Annotated[str, Field(validation_alias="PROJECT_NAME")]
+    DEBUG: Annotated[bool, Field(validation_alias="DEBUG")]
+    LOG_LEVEL: Annotated[str, Field(validation_alias="LOG_LEVEL")]
+
+    # Secrets
     ALGORITHM: Annotated[str, Field(validation_alias="ALGORITHM")]
     SECRET_KEY: Annotated[str, Field(validation_alias="SECRET_KEY")]
-    LOG_LEVEL: Annotated[str, Field(validation_alias="LOG_LEVEL")]
-    DEBUG: bool = True
-    SESSION_LIFETIME: int = 3600
+    PASSWORD_STUB: Annotated[str, Field(validation_alias="PASSWORD_STUB")]
+    USE_VALID_PASSWORD: Annotated[str, Field(validation_alias="USE_VALID_PASSWORD")]
 
     # JSON list of accepted CORS origins
     CORS_ORIGINS: list[AnyHttpUrl] = TypeAdapter(list[AnyHttpUrl]).validate_json(
@@ -33,6 +36,10 @@ class Settings(BaseSettings):
         int, Field(default=5432, validation_alias="POSTGRES_PORT", gt=1024, lt=65536)
     ]
     POSTGRES_DB: Annotated[str, Field(validation_alias="POSTGRES_DB")]
+    DB_POOL_SIZE: Annotated[int, Field(validation_alias="DB_POOL_SIZE")]
+    DB_MAX_OVERFLOW: Annotated[int, Field(validation_alias="DB_MAX_OVERFLOW")]
+    DB_POOL_RECYCLE: Annotated[int, Field(validation_alias="DB_POOL_RECYCLE")]
+    DB_CONNECT_TIMEOUT: Annotated[int, Field(validation_alias="DB_CONNECT_TIMEOUT")]
 
     # Admin
     ADMIN_LOGIN: Annotated[str, Field(validation_alias="ADMIN_LOGIN")]
@@ -57,6 +64,11 @@ class Settings(BaseSettings):
     YANDEX_AUTHORIZE_URL: Annotated[str, Field(validation_alias="YANDEX_AUTHORIZE_URL")]
     YANDEX_BASE_URL: Annotated[str, Field(validation_alias="YANDEX_BASE_URL")]
     YANDEX_USER_INFO_URL: Annotated[str, Field(validation_alias="YANDEX_USER_INFO_URL")]
+
+    # Audio files dir
+    STORAGE_PATH: str = "./storage"
+
+    SESSION_LIFETIME: int = 3600
 
     model_config = SettingsConfigDict(
         env_file=".env",
