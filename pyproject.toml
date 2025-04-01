@@ -37,6 +37,7 @@ python-multipart = "^0.0.20"
 redis = "^5.0.0"
 sqlalchemy = { extras = ["mypy"], version = "^2.0.37" }
 uvicorn = { extras = ["standard"], version = "^0.34.0" }
+aiofiles = "^24.1.0"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.14.1"
