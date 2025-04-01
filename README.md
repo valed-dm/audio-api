@@ -21,4 +21,20 @@ FastAPI service for audio file uploads with Yandex user authentication and local
 для каждого пользователя (использована схема tiangolo 'scopes')
 
 
-[<img src="docs/images/img_04.png" width="800"/>]()
+[<img src="docs/images/img_05.png" width="800"/>]()
+
+[<img src="docs/images/img_06.png" width="400"/>]()
+
+[<img src="docs/images/img_07.png" width="400"/>]()
+
+[<img src="docs/images/img_08.png" width="400"/>]()
+
+[<img src="docs/images/img_09.png" width="800"/>]()
+
+[<img src="docs/images/img_10.png" width="800"/>]()
+
+[<img src="docs/images/img_11.png" width="800"/>]()
+
+[<img src="docs/images/img_12.png" width="800"/>]()
+
+Образец загруженного файла в папке "/storage".
