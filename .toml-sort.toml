@@ -1,0 +1,9 @@
+[tool.toml-sort]
+sort-inline-tables = true
+sort-first = ["python", "poetry-core"]
+
+[tool.poetry.dependencies]
+sort-key-order = ["python", "poetry*", "*"]
+
+[tool.poetry.group.dev.dependencies]
+sort-alphabetical = true

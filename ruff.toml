@@ -1,0 +1,35 @@
+line-length = 90
+target-version = "py312"
+
+lint.select = [
+    "E", # pycodestyle errors
+    "F", # pyflakes
+    "B", # bugbear
+    "I", # isort
+    "UP", # pyupgrade
+    "C4", # flake8-comprehensions
+    "S", # flake8-bandit (security)
+    "BLE", # flake8-blind-except
+    "PTH", # flake8-use-pathlib
+    "RUF", # Ruff-specific rules
+]
+
+lint.ignore = [
+    "ANN001",
+    "ANN202",
+    "ANN101", # Missing type annotation for self
+    "E501", # Line too long (handled by format)
+]
+
+[format]
+docstring-code-format = true
+quote-style = "double"
+
+[lint.isort]
+known-first-party = ["app", "migrations", "tests"]
+combine-as-imports = true
+force-single-line = true # Easier diff tracking in version control
+
+[lint.per-file-ignores]
+"tests/*" = ["S101"] # Allow to assert in tests
+"__init__.py" = ["F401"] # Allow unused imports in __init__.py if used for exposure
