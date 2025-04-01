@@ -179,6 +179,7 @@ class DatabaseHealth:
 db_health = DatabaseHealth()
 
 
-async def get_db() -> AsyncSession:
-    """Dependency that provides a database session"""
-    return await db_health.get_session().__aenter__()
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    """Dependency that provides a database session within a managed context."""
+    async with db_health.get_session() as session:
+        yield session
