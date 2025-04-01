@@ -6,6 +6,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.api.v1.admin.users import admin_router
 from app.api.v1.audio.get_file import get_file_router
+from app.api.v1.audio.upload_file import upload_file_router
 from app.api.v1.auth.auth_token import user_token_router
 from app.api.v1.auth.me import user_me_router
 from app.api.v1.auth.register import user_register_router
@@ -38,6 +39,7 @@ def setup_routers(a: FastAPI) -> None:
     a.include_router(user_token_router, tags=["Users"])
     a.include_router(user_me_router, tags=["Users"])
     a.include_router(get_file_router, tags=["Audio"])
+    a.include_router(upload_file_router, tags=["Audio"])
 
 
 @asynccontextmanager
