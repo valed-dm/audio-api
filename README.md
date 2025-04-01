@@ -19,3 +19,6 @@ FastAPI service for audio file uploads with Yandex user authentication and local
 
 Модель авторизации позволяет администратору настраивать индивидуальный доступ к каждому эндпоинту
 для каждого пользователя (использована схема tiangolo 'scopes')
+
+
+[<img src="docs/images/img_04.png" width="800"/>]()
