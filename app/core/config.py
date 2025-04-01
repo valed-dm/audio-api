@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     SECRET_KEY: Annotated[str, Field(validation_alias="SECRET_KEY")]
     PASSWORD_STUB: Annotated[str, Field(validation_alias="PASSWORD_STUB")]
     USE_VALID_PASSWORD: Annotated[str, Field(validation_alias="USE_VALID_PASSWORD")]
+    TEMP_PASSWORD_REMINDER: Annotated[str, Field(validation_alias="TEMP_PASSWORD_REMINDER")]
 
     # JSON list of accepted CORS origins
     CORS_ORIGINS: list[AnyHttpUrl] = TypeAdapter(list[AnyHttpUrl]).validate_json(
